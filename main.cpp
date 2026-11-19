@@ -9,6 +9,12 @@
 #include <fftw3.h>
 
 #include <QSharedMemory>
+#include <QApplication>
+#include <QStyleFactory>
+#include <QPalette>
+#include <QColor>
+#include <QString>
+#include <QtGlobal>
 #include <QProcessEnvironment>
 #include <QTemporaryFile>
 #include <QDateTime>
@@ -104,6 +110,110 @@ namespace
   }
 }
 
+namespace
+{
+  // ACOM 1400S dashboard look: near-black background, dark cards,
+  // orange accent. Set the environment variable WSJTZ_CLASSIC to get
+  // the original look back.
+  void apply_acom_theme (QApplication & app)
+  {
+    if (qEnvironmentVariableIsSet ("WSJTZ_CLASSIC")) return;
+    if (auto * fusion = QStyleFactory::create ("Fusion")) app.setStyle (fusion);
+    QPalette p;
+    QColor const text {"#E8ECF1"};
+    QColor const dim {"#5D6673"};
+    p.setColor (QPalette::Window, QColor {"#0B0E12"});
+    p.setColor (QPalette::WindowText, text);
+    p.setColor (QPalette::Base, QColor {"#11151A"});
+    p.setColor (QPalette::AlternateBase, QColor {"#151A20"});
+    p.setColor (QPalette::ToolTipBase, QColor {"#151A20"});
+    p.setColor (QPalette::ToolTipText, text);
+    p.setColor (QPalette::Text, text);
+    p.setColor (QPalette::Button, QColor {"#1C232B"});
+    p.setColor (QPalette::ButtonText, text);
+    p.setColor (QPalette::BrightText, Qt::red);
+    p.setColor (QPalette::Link, QColor {"#FF9800"});
+    p.setColor (QPalette::Highlight, QColor {"#FF9800"});
+    p.setColor (QPalette::HighlightedText, QColor {"#1A1000"});
+    p.setColor (QPalette::Disabled, QPalette::WindowText, dim);
+    p.setColor (QPalette::Disabled, QPalette::Text, dim);
+    p.setColor (QPalette::Disabled, QPalette::ButtonText, dim);
+    app.setPalette (p);
+    app.setStyleSheet (QString::fromUtf8 (R"QSS(
+QWidget { background-color: #0B0E12; color: #E8ECF1; selection-background-color: #5A3A00; selection-color: #E8ECF1; }
+QWidget:disabled { color: #5D6673; }
+QLabel, QCheckBox, QRadioButton { background: transparent; }
+
+QMenuBar { background: #0B0E12; padding: 4px 6px; color: #8A94A3; }
+QMenuBar::item { background: transparent; padding: 5px 11px; border-radius: 8px; color: #8A94A3; }
+QMenuBar::item:selected { background: #1C232B; color: #E8ECF1; }
+QMenu { background: #151A20; border: 1px solid #232A33; border-radius: 10px; padding: 6px; }
+QMenu::item { padding: 6px 26px 6px 24px; border-radius: 6px; background: transparent; }
+QMenu::item:selected { background: #232A33; }
+QMenu::item:disabled { color: #5D6673; }
+QMenu::separator { height: 1px; background: #232A33; margin: 5px 8px; }
+
+QPushButton, QToolButton { background-color: #1C232B; color: #E8ECF1; border: 1px solid #232A33; border-radius: 8px; padding: 4px 10px; min-height: 18px; }
+QPushButton:hover, QToolButton:hover { background-color: #232A33; border-color: #2C3540; }
+QPushButton:pressed, QToolButton:pressed { background-color: #11151A; color: #8A94A3; }
+QPushButton:checked, QToolButton:checked { background-color: #FF9800; color: #1A1000; border: 1px solid #FF9800; font-weight: 600; }
+QPushButton:checked:hover, QToolButton:checked:hover { background-color: #FFB347; }
+QPushButton:disabled, QToolButton:disabled { background-color: #11151A; color: #5D6673; border-color: #232A33; }
+QPushButton:default { border: 1px solid #FF9800; }
+
+QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox, QDateTimeEdit, QDateEdit, QTimeEdit { background-color: #11151A; color: #E8ECF1; border: 1px solid #232A33; border-radius: 7px; padding: 2px 6px; min-height: 20px; }
+QLineEdit:hover, QSpinBox:hover, QDoubleSpinBox:hover, QComboBox:hover { border-color: #2C3540; }
+QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus { border: 1px solid #FF9800; }
+QLineEdit:disabled, QSpinBox:disabled, QDoubleSpinBox:disabled, QComboBox:disabled { color: #5D6673; background-color: #0E1217; }
+QComboBox QAbstractItemView { background: #151A20; border: 1px solid #232A33; border-radius: 8px; selection-background-color: #232A33; selection-color: #E8ECF1; outline: 0; }
+
+QCheckBox::indicator { width: 15px; height: 15px; border: 1px solid #2C3540; border-radius: 4px; background: #11151A; }
+QCheckBox::indicator:hover { border-color: #FF9800; }
+QCheckBox::indicator:checked { background: #FF9800; border-color: #FF9800; }
+QCheckBox::indicator:disabled { border-color: #232A33; background: #0E1217; }
+QRadioButton::indicator { width: 14px; height: 14px; border: 1px solid #2C3540; border-radius: 8px; background: #11151A; }
+QRadioButton::indicator:checked { background: #FF9800; border-color: #FF9800; }
+
+QTextEdit, QPlainTextEdit, QTextBrowser, QListView, QListWidget, QTreeView, QTableView, QTableWidget { background-color: #151A20; color: #E8ECF1; border: 1px solid #232A33; border-radius: 10px; padding: 3px; }
+QHeaderView::section { background-color: #151A20; color: #8A94A3; border: none; border-bottom: 1px solid #232A33; padding: 4px 6px; font-weight: 600; }
+QTableCornerButton::section { background: #151A20; border: none; }
+
+QTabWidget::pane { background: #151A20; border: 1px solid #232A33; border-radius: 10px; top: 3px; }
+QTabBar::tab { background: transparent; color: #8A94A3; padding: 5px 12px; margin: 2px 3px 2px 0; border-radius: 8px; }
+QTabBar::tab:hover { color: #E8ECF1; background: #1C232B; }
+QTabBar::tab:selected { color: #1A1000; background: #FF9800; font-weight: 600; }
+
+QGroupBox { background-color: #151A20; border: 1px solid #232A33; border-radius: 12px; margin-top: 18px; padding: 10px 6px 6px 6px; }
+QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 10px; padding: 0 4px; color: #FF9800; background: transparent; font-weight: 600; }
+
+QScrollBar:vertical { background: transparent; width: 10px; margin: 2px; }
+QScrollBar:horizontal { background: transparent; height: 10px; margin: 2px; }
+QScrollBar::handle:vertical { background: #2C3540; min-height: 28px; border-radius: 4px; }
+QScrollBar::handle:horizontal { background: #2C3540; min-width: 28px; border-radius: 4px; }
+QScrollBar::handle:hover { background: #5D6673; }
+QScrollBar::add-line, QScrollBar::sub-line { width: 0; height: 0; border: none; background: none; }
+QScrollBar::add-page, QScrollBar::sub-page { background: none; }
+
+QSlider::groove:horizontal { height: 4px; background: #232A33; border-radius: 2px; }
+QSlider::sub-page:horizontal { background: #FF9800; border-radius: 2px; }
+QSlider::groove:vertical { width: 4px; background: #232A33; border-radius: 2px; }
+QSlider::add-page:vertical { background: #FF9800; border-radius: 2px; }
+QSlider::handle:horizontal { background: #E8ECF1; border: 1px solid #2C3540; width: 14px; height: 14px; margin: -6px 0; border-radius: 8px; }
+QSlider::handle:vertical { background: #E8ECF1; border: 1px solid #2C3540; width: 14px; height: 14px; margin: 0 -6px; border-radius: 8px; }
+
+QProgressBar { background-color: #1C232B; color: #E8ECF1; border: none; border-radius: 6px; text-align: center; min-height: 12px; }
+QProgressBar::chunk { background-color: #FF9800; border-radius: 6px; }
+
+QSplitter::handle { background: transparent; }
+QSplitter::handle:hover { background: #232A33; }
+QStatusBar { background: #0B0E12; border: none; }
+QStatusBar::item { border: none; }
+QToolTip { background-color: #151A20; color: #E8ECF1; border: 1px solid #2C3540; border-radius: 8px; padding: 5px 8px; }
+QDialog { background-color: #0B0E12; }
+)QSS"));
+  }
+}
+
 int main(int argc, char *argv[])
 {
   init_random_seed ();
@@ -127,6 +237,7 @@ int main(int argc, char *argv[])
   auto const env = QProcessEnvironment::systemEnvironment ();
 
   ExceptionCatchingApplication a(argc, argv);
+  apply_acom_theme (a);
   try
     {
       // LOG_INfO ("+++++++++++++++++++++++++++ Resources ++++++++++++++++++++++++++++");
