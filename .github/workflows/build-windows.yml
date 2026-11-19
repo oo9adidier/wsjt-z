@@ -95,6 +95,9 @@ jobs:
             -DWSJT_SKIP_MANPAGES=ON \
             -DWSJT_GENERATE_DOCS=OFF \
             -DWSJT_BUILD_UTILS=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_FLAGS_RELEASE="-O2 -DNDEBUG -Wno-error" \
+            -DCMAKE_DISABLE_FIND_PACKAGE_OpenMP=ON \
             -Wno-dev
 
       - name: Build
