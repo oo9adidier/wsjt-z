@@ -11,6 +11,9 @@
 #include <QSharedMemory>
 #include <QApplication>
 #include <QStyleFactory>
+#include <QLibrary>
+#include <QEvent>
+#include <QWidget>
 #include <QPalette>
 #include <QColor>
 #include <QString>
@@ -117,9 +120,44 @@ namespace
   // ACOM 1400S dashboard look: near-black background, dark cards,
   // orange accent. Set the environment variable WSJTZ_CLASSIC to get
   // the original look back.
+#ifdef Q_OS_WIN
+  // Dark title bars (Windows 10/11) in ACOM colours, for every top level window.
+  class AcomTitleBar : public QObject
+  {
+  public:
+    explicit AcomTitleBar (QObject * parent) : QObject {parent} {}
+    bool eventFilter (QObject * o, QEvent * e) override
+    {
+      if (e->type () == QEvent::Show)
+        {
+          auto * w = qobject_cast<QWidget *> (o);
+          if (w && w->isWindow () && !(w->windowFlags () & Qt::FramelessWindowHint)) apply (w);
+        }
+      return false;
+    }
+  private:
+    typedef long (__stdcall * DwmSet) (void *, unsigned long, void const *, unsigned long);
+    static void apply (QWidget * w)
+    {
+      static QLibrary dwm {"dwmapi"};
+      static DwmSet set = reinterpret_cast<DwmSet> (dwm.resolve ("DwmSetWindowAttribute"));
+      if (!set) return;
+      void * h = reinterpret_cast<void *> (w->winId ());
+      unsigned int const on = 1, cap = 0x00120E0B, txt = 0x00F1ECE8, brd = 0x00332A23;
+      set (h, 20, &on, sizeof on);   // immersive dark mode
+      set (h, 35, &cap, sizeof cap); // caption colour #0B0E12 (Windows 11)
+      set (h, 36, &txt, sizeof txt); // caption text #E8ECF1
+      set (h, 34, &brd, sizeof brd); // border #232A33
+    }
+  };
+#endif
+
   void apply_acom_theme (QApplication & app)
   {
     if (qEnvironmentVariableIsSet ("WSJTZ_CLASSIC")) return;
+#ifdef Q_OS_WIN
+    app.installEventFilter (new AcomTitleBar {&app});
+#endif
     if (auto * fusion = QStyleFactory::create ("Fusion")) app.setStyle (fusion);
     QPalette p;
     QColor const text {"#E8ECF1"};
