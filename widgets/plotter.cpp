@@ -115,7 +115,7 @@ void CPlotter::resizeEvent(QResizeEvent* )                    //resizeEvent()
     m_WaterfallPixmap.fill(Qt::black);
     m_2DPixmap.fill(Qt::black);
     m_ScalePixmap = QPixmap(m_w,30);
-    m_ScalePixmap.fill(Qt::white);
+    m_ScalePixmap.fill(QColor(0x0B,0x0E,0x12));
     m_Percent2DScreen0 = m_Percent2DScreen;
     m_bResized = true;
     m_vpixperdiv = float(m_h2)/float(VERT_DIVS);
@@ -466,13 +466,13 @@ void CPlotter::DrawOverlay()                   //DrawOverlay()
   Font.setPointSize(12);
   Font.setWeight(QFont::Normal);
   painter0.setFont(Font);
-  painter0.setPen(Qt::black);
+  painter0.setPen(QColor(0xE8,0xEC,0xF1));
 
   if(m_binsPerPixel < 1) m_binsPerPixel=1;
   m_hdivs = w*df/m_freqPerDiv + 0.9999;
 
-  m_ScalePixmap.fill(Qt::white);
-  painter0.drawRect(0, 0, w, 30);
+  m_ScalePixmap.fill(QColor(0x0B,0x0E,0x12));
+  painter0.fillRect(0, 0, w, 30, QColor(0x0B,0x0E,0x12));
   MakeFrequencyStrs();
 
 //draw tick marks on upper scale
@@ -1066,7 +1066,7 @@ void CPlotter::clear()
     m_OverlayPixmap.fill(Qt::black);
 
     m_ScalePixmap = QPixmap(m_w, 30);
-    m_ScalePixmap.fill(Qt::white);
+    m_ScalePixmap.fill(QColor(0x0B,0x0E,0x12));
 
     DrawOverlay();
     update();
