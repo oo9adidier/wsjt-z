@@ -110,6 +110,8 @@ namespace
   }
 }
 
+QString g_acom_style_sheet;   // used by MainWindow::on_actionDark_mode_triggered
+
 namespace
 {
   // ACOM 1400S dashboard look: near-black background, dark cards,
@@ -139,7 +141,7 @@ namespace
     p.setColor (QPalette::Disabled, QPalette::Text, dim);
     p.setColor (QPalette::Disabled, QPalette::ButtonText, dim);
     app.setPalette (p);
-    app.setStyleSheet (QString::fromUtf8 (R"QSS(
+    g_acom_style_sheet = (QString::fromUtf8 (R"QSS(
 QWidget { background-color: #0B0E12; color: #E8ECF1; selection-background-color: #5A3A00; selection-color: #E8ECF1; }
 QWidget:disabled { color: #5D6673; }
 QLabel, QCheckBox, QRadioButton { background: transparent; }
@@ -211,6 +213,7 @@ QStatusBar::item { border: none; }
 QToolTip { background-color: #151A20; color: #E8ECF1; border: 1px solid #2C3540; border-radius: 8px; padding: 5px 8px; }
 QDialog { background-color: #0B0E12; }
 )QSS"));
+    app.setStyleSheet (g_acom_style_sheet);
   }
 }
 
