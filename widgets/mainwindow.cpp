@@ -15817,6 +15817,14 @@ double MainWindow::watchdog() {
 }
 
 void MainWindow::on_actionDark_mode_triggered() {
+    extern QString g_acom_style_sheet;   // ACOM theme from main.cpp
+    if (!g_acom_style_sheet.isEmpty ()) {
+        qApp->setStyleSheet (g_acom_style_sheet);
+        labAz.setStyleSheet ("QLabel{background-color: #5A3A00; color: #FFB347; padding-left: 10px; padding-right: 10px}");
+        qso_count.setStyleSheet ("QLabel{background-color: #5A3A00; color: #FFB347; padding-left: 10px; padding-right: 10px}");
+        initialize_fonts();
+        return;
+    }
     if (ui->actionDark_mode->isChecked()) {
         if (m_zdebug) log("Stylesheet: DARK");
         QFile file(":/qdarkstyle/style.qss");
